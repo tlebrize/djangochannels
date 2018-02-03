@@ -16,8 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from chat import views as chat
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-	path('front/', chat.front),
+	path('login/', auth_views.login, {'template_name': 'chat/login.html'}),
+	path('logout/', auth_views.logout, {'template_name': 'chat/logout.html'}),
+	path('profile/', chat.profile),
+	path('chat/', chat.main),
     path('admin/', admin.site.urls),
 ]

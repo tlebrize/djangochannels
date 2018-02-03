@@ -13,8 +13,7 @@
     };
 
     socket.onmessage = function message(event) {
-      var data = JSON.parse(event.data);
-      console.log(data);
+    	console.log(event.data)
     };
 
     if (socket.readyState == WebSocket.OPEN) {

@@ -1,18 +1,26 @@
-from channels.generic.websocket import JsonWebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import AsyncToSync
 
-class ChatConsumer(JsonWebsocketConsumer):
+class ChatConsumer(WebsocketConsumer):
+    
     def connect(self):
-        self.username = 'Anonymous'
+        AsyncToSync(self.channel_layer.group_add)("chat", self.channel_name)
         self.accept()
-        self.send_json(content='Hi %s' % self.username)
+        user = self.scope['user']
+        self.send(text_data='Hi %s' % user.username)
 
-    def receive_json(self, content):
-        text = content['msg']
-        if text.startswith("/name"):
-            self.username = text[5:].strip()
-            self.send_json(content="[set your username to %s]" % self.username)
-        else:
-            self.send_json(content=self.username + ": " + text)
+    def receive(self, text_data=None, bytes_data=None):
+        user = self.scope['user']
+        AsyncToSync(self.channel_layer.group_send)(
+            "chat",
+            {
+                "type": "chat.message",
+                "text": text_data,
+            },
+        )
+
+    def chat_message(self, event):
+        self.send(text_data=event["text"])
 
     def disconnect(self, message):
-        pass
+        AsyncToSync(self.channel_layer.group_discard)("chat", self.channel_name)
